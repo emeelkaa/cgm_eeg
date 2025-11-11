@@ -7,7 +7,7 @@ CGM-EEG models temporal and spatial dependencies in parallel using bidirectional
 
 ## 📘 Overview
 
-![Framework Overview](fig/pipeline.png)
+![Framework Overview](pipeline.png)
 
 **CGM-EEG** introduces a *dual-branch design* combining temporal and spatial Mamba encoders, where each branch captures complementary dependencies.  
 The **Cross-Gate Module (CGM)** integrates contextual cues across branches, improving representational power while maintaining linear-time efficiency.  
