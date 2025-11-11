@@ -15,11 +15,3 @@ This approach achieves high decoding accuracy and reduced inference latency acro
 
 ---
 
-## 📂 Repository Structure
-CGM-EEG/
-│
-├── dataset.py # EEG dataset loaders and preprocessing pipelines
-├── models/ # Implementations of CGM-EEG and baseline models (BIOT, TSception, EEG-Conformer, SPaRCNet)
-├── train.py # Main training scripts for all experimental settings
-├── requirements.txt # Python dependencies
-└── README.md # Project documentation
