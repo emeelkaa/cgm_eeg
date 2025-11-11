@@ -1,29 +1,25 @@
-# CGM-EEG: Cross-Gated Mamba for Spatio-Temporal EEG Representation Learning
+# 🧠 CGM-EEG: Cross-Gated Mamba for Spatio-Temporal EEG Representation Learning
 
-This repository contains the official implementation of CGM-EEG, a fully Mamba-based dual-branch architecture for efficient and accurate EEG decoding. CGM-EEG models temporal and spatial dependencies in parallel using bidirectional Mamba encoders and a lightweight Cross-Gate Module (CGM) that enables dynamic feature interaction across branches.
+Official PyTorch implementation of **CGM-EEG**, a fully Mamba-based dual-branch architecture for efficient and accurate EEG decoding.  
+CGM-EEG models temporal and spatial dependencies in parallel using bidirectional Mamba encoders and a lightweight **Cross-Gate Module (CGM)** that enables dynamic information exchange between branches.
 
-✨ Key Features
+---
 
-Dual-branch Temporal–Spatial Mamba Encoder for joint EEG sequence modeling
+## 📘 Overview
 
-Cross-Gate Module for efficient bidirectional feature fusion
+![Framework Overview](fig/pipeline.png)
 
-Supports binary and multi-class EEG classification (CHB-MIT, TUEV, TUSZ)
+**CGM-EEG** introduces a *dual-branch design* combining temporal and spatial Mamba encoders, where each branch captures complementary dependencies.  
+The **Cross-Gate Module (CGM)** integrates contextual cues across branches, improving representational power while maintaining linear-time efficiency.  
+This approach achieves high decoding accuracy and reduced inference latency across multiple EEG benchmarks.
 
-Implements subject-dependent and subject-independent evaluation protocols
+---
 
-Fully reproducible PyTorch training and evaluation pipeline
-
-📊 Results
-CGM-EEG achieves up to 3.5% higher balanced accuracy and 7.1% lower inference latency than recent Transformer-based EEG models, while maintaining strong generalization across datasets.
-
-## Files
-- `train.py`: Main training pipeline.
-- `dataset.py`: Dataset class and preprocessing functions.
-- `models/`: Contains model definitions.
-
-## Usage
-```bash
-python train.py
-# HSST-EEG
-
+## 📂 Repository Structure
+CGM-EEG/
+│
+├── dataset.py # EEG dataset loaders and preprocessing pipelines
+├── models/ # Implementations of CGM-EEG and baseline models (BIOT, TSception, EEG-Conformer, SPaRCNet)
+├── train.py # Main training scripts for all experimental settings
+├── requirements.txt # Python dependencies
+└── README.md # Project documentation
