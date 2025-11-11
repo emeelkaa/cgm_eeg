@@ -8,14 +8,14 @@ from pyhealth.metrics import binary_metrics_fn
 from pyhealth.metrics import multiclass_metrics_fn
 from tqdm import tqdm
 
-from dataset import get_chbmit, get_tuev
-from models import EEGConformer, BIOT, HSST, SPARCNet, TSception
+from dataset import get_chbmit, get_tuev, get_tusz
+from models import CGM, BIOT, EEGConformer, SPaRCNet, TSception
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class Trainer: 
     def __init__(self, model: torch.nn.Module, train_dataset: Dataset, val_dataset: Dataset, test_dataset: Dataset, num_classes: int, 
-                 batch_size: int, num_workers: int, lr: float = 1e-3, weight_decay: float = 1e-4, save_dir: str = "results", seed: int = 42
+                 batch_size: int, save_dir: str, num_workers: int = 2, lr: float = 1e-3, weight_decay: float = 1e-4,  seed: int = 42
     ):
         # Set seeds for reproducibility
         torch.manual_seed(seed)
@@ -25,6 +25,7 @@ class Trainer:
         
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.num_classes = num_classes
+        
         self.save_dir = save_dir
         os.makedirs(self.save_dir, exist_ok=True)
 
@@ -44,22 +45,22 @@ class Trainer:
 
         if self.num_classes == 1:
             self.history = {
-                'train_loss': [], 'train_acc': [], 'train_bacc': [], 'train_pr_auc': [], 'train_auroc': [],
-                'val_loss': [], 'val_acc': [], 'val_bacc': [], 'val_pr_auc': [], 'val_auroc': []
+                'train_loss': [], 'train_acc': [], 'train_bacc': [], 'train_auroc': [],
+                'val_loss': [], 'val_acc': [], 'val_bacc': [], 'val_auroc': []
             }
         else:
             self.history = {
-                'train_loss': [], 'train_bacc': [], 'train_f1': [], 'train_kappa': [],
-                'val_loss': [], 'val_bacc': [], 'val_f1': [], 'val_kappa': []
+                'train_loss': [], 'train_bacc': [], 'train_f1': [],
+                'val_loss': [], 'val_bacc': [], 'val_f1': []
             }
 
     def compute_metrics(self, labels, probs):
         if self.num_classes == 1:
-            metrics = binary_metrics_fn(labels, probs, metrics=['accuracy', 'balanced_accuracy', 'pr_auc', 'roc_auc'])
-            return metrics['accuracy'], metrics['balanced_accuracy'], metrics['pr_auc'], metrics['roc_auc']
+            metrics = binary_metrics_fn(labels, probs, metrics=['accuracy', 'balanced_accuracy', 'roc_auc'])
+            return metrics['accuracy'], metrics['balanced_accuracy'], metrics['roc_auc']
         else:
-            metrics = multiclass_metrics_fn(labels, probs, metrics=['balanced_accuracy', 'f1_weighted', 'cohen_kappa'])
-            return metrics['balanced_accuracy'], metrics['f1_weighted'], metrics['cohen_kappa']
+            metrics = multiclass_metrics_fn(labels, probs, metrics=['balanced_accuracy', 'f1_weighted'])
+            return metrics['balanced_accuracy'], metrics['f1_weighted']
 
     def save_history(self):
         with open(os.path.join(self.save_dir, 'history.json'), 'w') as f:
@@ -90,7 +91,6 @@ class Trainer:
         correct = (preds == labels).sum().item()
         return loss.item(), correct, probs, labels
     
-
     def evaluate(self, dataloader, training=True):
         if training: 
             self.model.train()
@@ -118,11 +118,11 @@ class Trainer:
         all_labels = torch.cat(labels_list).numpy()
 
         if self.num_classes == 1:
-            acc, balanced_acc, pr_auc, auroc = self.compute_metrics(all_labels, all_probs)
-            return avg_loss, acc, balanced_acc, pr_auc, auroc
+            acc, balanced_acc, auroc = self.compute_metrics(all_labels, all_probs)
+            return avg_loss, acc, balanced_acc, auroc
         else:
-            balanced_acc, f1, kappa = self.compute_metrics(all_labels, all_probs)
-            return avg_loss, balanced_acc, f1, kappa
+            balanced_acc, f1 = self.compute_metrics(all_labels, all_probs)
+            return avg_loss, balanced_acc, f1
             
 
     def train(self, epochs, patience):
@@ -131,40 +131,40 @@ class Trainer:
 
         for epoch in range(epochs):
             if self.num_classes == 1:
-                train_loss, train_acc, train_bacc, train_pr_auc, train_auroc = self.evaluate(self.train_loader, training=True)
-                val_loss, val_acc, val_bacc, val_pr_auc, val_auroc = self.evaluate(self.val_loader, training=False)
+                train_loss, train_acc, train_bacc, train_auroc = self.evaluate(self.train_loader, training=True)
+                val_loss, val_acc, val_bacc, val_auroc = self.evaluate(self.val_loader, training=False)
 
                 self.scheduler.step(val_loss)
 
-                for key, val in zip(['train_loss', 'train_acc', 'train_bacc', 'train_pr_auc', 'train_auroc',
-                                    'val_loss', 'val_acc', 'val_bacc', 'val_pr_auc', 'val_auroc'],
-                                    [train_loss, train_acc, train_bacc, train_pr_auc, train_auroc,
-                                    val_loss, val_acc, val_bacc, val_pr_auc, val_auroc]):
+                for key, val in zip(['train_loss', 'train_acc', 'train_bacc', 'train_auroc',
+                                    'val_loss', 'val_acc', 'val_bacc', 'val_auroc'],
+                                    [train_loss, train_acc, train_bacc, train_auroc,
+                                    val_loss, val_acc, val_bacc, val_auroc]):
                     self.history[key].append(val)
                 
                 logging.info(f"Epoch {epoch+1}/{epochs}"
-                            f"\nTrain - Loss: {train_loss:.4f}, Acc: {train_acc:.2f}%, BAcc: {train_bacc:.2f}%"
-                            f"\nAUROC: {train_auroc:.4f}, PR-AUC: {train_pr_auc:.4f}"
-                            f"\nVal - Loss: {val_loss:.4f}, Acc: {val_acc:.2f}%, BAcc: {val_bacc:.2f}%"
-                            f"\nAUROC: {val_auroc:.4f}, PR-AUC: {val_pr_auc:.4f}")
+                            f"\nTrain - Loss: {train_loss:.4f}, Acc: {train_acc:.2f}%"
+                            f"\nBAcc: {train_bacc:.2f}%, AUROC: {train_auroc:.4f}"
+                            f"\nVal - Loss: {val_loss:.4f}, Acc: {val_acc:.2f}%"
+                            f"\nBAcc: {val_bacc:.2f}%, AUROC: {val_auroc:.4f}")
 
                 self.save_history()
             
             else:
-                train_loss, train_bacc, train_f1, train_kappa = self.evaluate(self.train_loader, training=True)
-                val_loss, val_bacc, val_f1, val_kappa = self.evaluate(self.val_loader, training=False)
+                train_loss, train_bacc, train_f1 = self.evaluate(self.train_loader, training=True)
+                val_loss, val_bacc, val_f1 = self.evaluate(self.val_loader, training=False)
 
                 self.scheduler.step(val_loss)
 
-                for key, val in zip(['train_loss', 'train_bacc', 'train_f1', 'train_kappa',
-                                    'val_loss', 'val_bacc', 'val_f1', 'val_kappa'],
-                                    [train_loss, train_bacc, train_f1, train_kappa,
-                                    val_loss, val_bacc, val_f1, val_kappa]):
+                for key, val in zip(['train_loss', 'train_bacc', 'train_f1',
+                                    'val_loss', 'val_bacc', 'val_f1'],
+                                    [train_loss, train_bacc, train_f1,
+                                    val_loss, val_bacc, val_f1]):
                     self.history[key].append(val)
                 
                 logging.info(f"Epoch {epoch+1}/{epochs}"
-                            f"\nTrain - Loss: {train_loss:.4f}, BACC: {train_bacc:.2f}%, F1: {train_f1:.2f}%, Kappa: {train_kappa:.2f}" 
-                            f"\nVal - Loss: {val_loss:.4f}, BACC: {val_bacc:.2f}%, F1: {val_f1:.2f}%, Kappa: {val_kappa:.2f}"
+                            f"\nTrain - Loss: {train_loss:.4f}, BACC: {train_bacc:.2f}%, F1: {train_f1:.2f}%" 
+                            f"\nVal - Loss: {val_loss:.4f}, BACC: {val_bacc:.2f}%, F1: {val_f1:.2f}%"
                 )
 
                 self.save_history()
@@ -186,71 +186,77 @@ class Trainer:
         self.model.load_state_dict(torch.load(model_path))
 
         if self.num_classes == 1:
-            test_loss, test_acc, test_bacc, test_pr_auc, test_auroc = self.evaluate(self.test_loader, training=False)
-            logging.info(f"Test - Loss: {test_loss:.4f}, Acc: {test_acc:.2f}%, BAcc: {test_bacc:.2f}%"
-                    f"\nAUROC: {test_auroc:.4f}, PR-AUC: {test_pr_auc:.4f}")
+            test_loss, test_acc, test_bacc, test_auroc = self.evaluate(self.test_loader, training=False)
+            logging.info(f"Test - Loss: {test_loss:.4f}, Acc: {test_acc:.2f}%"
+                    f"\nBAcc: {test_bacc:.2f}%, AUROC: {test_auroc:.4f}")
             
             test_metrics = {
-            'test_loss': test_loss,
-            'test_acc': test_acc,
-            'test_bacc': test_bacc,
-            'test_pr_auc': test_pr_auc,
-            'test_auroc': test_auroc,
+                'test_loss': test_loss,
+                'test_acc': test_acc,
+                'test_bacc': test_bacc,
+                'test_auroc': test_auroc
             }
         else:
-            test_loss, test_bacc, test_f1, test_kappa = self.evaluate(self.test_loader, training=False)
-            logging.info(f"Test - Loss: {test_loss:.4f}, BACC: {test_bacc:.2f}%, F1: {test_f1:.2f}%, Kappa: {test_kappa:.2f}"
+            test_loss, test_bacc, test_f1 = self.evaluate(self.test_loader, training=False)
+            logging.info(f"Test - Loss: {test_loss:.4f}, BACC: {test_bacc:.2f}%, F1: {test_f1:.2f}%"
             )
             
             test_metrics = {
-            'test_loss': test_loss,
-            'test_bacc': test_bacc,
-            'test_f1': test_f1,
-            'test_kappa': test_kappa,            
+                'test_loss': test_loss,
+                'test_bacc': test_bacc,
+                'test_f1': test_f1         
             }
 
         with open(os.path.join(self.save_dir, 'test_metrics.json'), 'w') as f:
             json.dump(test_metrics, f, indent=4)
 
 
-
 if __name__ == "__main__":
-    datasets = ['chbmit_2']
-    
+    datasets = ['chbmit_sd', 'chbmit', 'tuev', 'tusz']
     for dataset in datasets:
-        if dataset == 'chbmit_2':
-            train_dataset, val_dataset, test_dataset = get_chbmit()
-
-            n_channels = 16
-            n_times = 2560
+        if dataset == 'chbmit':
+            train_dataset, val_dataset, test_dataset = get_chbmit(subject_independent=True)
+            num_channels = 16
+            num_times = 2560
             sfreq = 256
-            n_classes = 1
+            num_classes = 1
+        elif dataset == 'chbmit_sd':
+            train_dataset, val_dataset, test_dataset = get_chbmit(subject_independent=False)
+            num_channels = 16
+            num_times = 2560
+            sfreq = 256
+            num_classes = 1
         elif dataset == 'tuev':
             train_dataset, val_dataset, test_dataset = get_tuev()
-
-            n_channels = 16
-            n_times = 1250 
+            num_channels = 16
+            num_times = 1250 
             sfreq = 250
-            n_classes = 6
+            num_classes = 6
+        elif dataset == 'tusz':
+            train_dataset, val_dataset, test_dataset = get_tusz()
+            num_channels = 16
+            num_times = 2560
+            sfreq = 256
+            num_classes = 4
       
-        models = ['biot', 'conformer', 'hsst', 'sparcnet', 'tsception']
-        emb_size = 64
+        models = ['cgm', 'biot', 'conformer', 'sparcnet', 'tsception']
+        d_model = 64
         num_heads = 4
-        depth = 2
+        depth = 4
 
         for i, model_name in enumerate(models):
-            if model_name == 'conformer':
-                model = EEGConformer(emb_size=emb_size, depth=depth, num_heads=num_heads, n_channels=n_channels, n_classes=n_classes)
+            if model_name == 'cgm':
+                model = CGM(d_model=d_model, depth=depth//2, num_channels=num_channels, sfreq=sfreq, num_classes=num_classes)
             elif model_name == 'biot':
-                model = BIOT(emb_size=emb_size, depth=depth, num_heads=num_heads, n_channels=n_channels, n_classes=n_classes)
-            elif model_name == 'hsst':
-                model = HSST(emb_size=emb_size, depth=depth//2, num_heads=num_heads, n_channels=n_channels, n_classes=n_classes)
+                model = BIOT(d_model=d_model, n_heads=num_heads, depth=depth, num_channels=num_channels, sfreq=sfreq, num_classes=num_classes)
+            elif model_name == 'conformer':
+                model = EEGConformer(emb_size=d_model, depth=depth, n_heads=num_heads, num_channels=num_channels, num_classes=num_classes)
             elif model_name == 'sparcnet':
-                model = SPARCNet(num_channels=n_channels, num_times=n_times, num_classes=n_classes)
+                model = SPaRCNet(in_channels=num_channels, sample_length=num_times, n_classes=num_classes)
             elif model_name == 'tsception':
-                model = TSception(num_classes=n_classes, input_size=(1, n_channels, n_times), sampling_rate=sfreq, num_T=32, num_S=32, hidden=64, dropout_rate=0.3)
+                model = TSception(num_classes=num_classes, input_size=(1, num_channels, num_times), sampling_rate=sfreq, num_T=32, num_S=32, hidden=64)
             
-            seeds = [1234]
+            seeds = [42]
 
             for seed in seeds:
                 trainer = Trainer(
@@ -259,11 +265,11 @@ if __name__ == "__main__":
                     val_dataset=val_dataset,
                     test_dataset=test_dataset,
                     batch_size=16,
-                    num_classes=n_classes,
+                    num_classes=num_classes,
                     num_workers=2,
                     save_dir=f"results/{dataset}/{model_name}/{seed}",
                     seed=seed 
                 )
 
-                trainer.train(epochs=100, patience=10)
+                trainer.train(epochs=100, patience=7)
                 trainer.test()

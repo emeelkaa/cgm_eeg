@@ -9,7 +9,7 @@ class TSception(nn.Module):
             nn.LeakyReLU(),
             nn.AvgPool2d(kernel_size=(1, pool), stride=(1, pool)))
 
-    def __init__(self, num_classes, input_size, sampling_rate, num_T, num_S, hidden, dropout_rate):
+    def __init__(self, num_classes, input_size, sampling_rate, num_T, num_S, hidden, dropout_rate=0.3):
         super().__init__()
         self.inception_window = [0.5, 0.25, 0.125]
         self.pool = 8
