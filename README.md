@@ -53,4 +53,11 @@ CGM-EEG/
 ```bash
    pip install -r requirements.txt
 ```
+## 📧 Contact
 
+For questions, issues, or collaboration inquiries, please contact:
+
+- **Email**: [emilkim01@pusan.ac.kr](mailto:emilkim01@pusan.ac.kr)
+- **Author**: [Emil Kim]
+
+---
