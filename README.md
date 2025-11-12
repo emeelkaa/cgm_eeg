@@ -58,6 +58,6 @@ CGM-EEG/
 For questions, issues, or collaboration inquiries, please contact:
 
 - **Email**: [emilkim01@pusan.ac.kr](mailto:emilkim01@pusan.ac.kr)
-- **Author**: [Emil Kim]
+- **Author**: Emil Kim
 
 ---
