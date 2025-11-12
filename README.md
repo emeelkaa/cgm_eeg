@@ -35,3 +35,22 @@ CGM-EEG/
 ├── pipeline.png            # Architecture diagram
 ├── README.md               # This file
 ```
+### Installation
+
+1. **Clone the repository**
+```bash
+   git clone https://github.com/emeelkaa/cgm_eeg.git
+   cd CGM-EEG
+```
+
+2. **Create a virtual environment (recommended)**
+```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+3. **Install dependencies**
+```bash
+   pip install -r requirements.txt
+```
+
