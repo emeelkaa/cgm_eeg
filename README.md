@@ -26,12 +26,12 @@ CGM-EEG/
 ├── models/                 # Model architectures
 │   ├── __init__.py
 │   ├── cgm_eeg.py         # Main CGM-EEG model
-│   ├── mamba_encoder.py   # Bidirectional Mamba encoder
-│   └── cross_gate.py      # Cross-Gate Module (CGM)
+│   ├── eeg_conformer.py   # Song, Yonghao, et al. (2022)
+│   └── biot.py            # Yang, Chaoqi, et al. (2023)
+│   └── sparcnet.py        # Jing, Jin, et al. (2023)
+│   └── tsception.py       # Ding, Yi, et al. (2022)
 ├── preprocessing/          # Data preprocessing scripts
-│   ├── __init__.py
-│   ├── eeg_transforms.py  # Signal transformations
-│   └── data_utils.py      # Helper functions for data handling
+│   ├── will commit later
 ├── pipeline.png            # Architecture diagram
 ├── README.md               # This file
 ```
