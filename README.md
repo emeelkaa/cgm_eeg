@@ -6,7 +6,7 @@ Official PyTorch implementation of **CGM-EEG**, a fully Mamba-based dual-branch 
 
 ## 📘 Overview
 
-![Framework Overview](pipeline.png)
+![Framework Overview](assets/pipeline.png)
 
 **CGM-EEG** introduces a *dual-branch design* combining temporal and spatial Mamba encoders, where each branch captures complementary dependencies.  
 The **Cross-Gate Module (CGM)** enables bidirectional interaction between the two branches, refining the learned representations.
