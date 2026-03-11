@@ -54,7 +54,7 @@ CGM-EEG/
 ## 🚀 Quick Start
 
 1. **Download the datasets**
-   - **CHBMIT**: [https://physionet.org/content/chbmit/1.0.0/](https://physionet.org/content/chbmit/1.0.0/)
+   - **CHB-MIT**: [https://physionet.org/content/chbmit/1.0.0/](https://physionet.org/content/chbmit/1.0.0/)
    - **TUEV**: [https://isip.piconepress.com/projects/tuh_eeg/](https://isip.piconepress.com/projects/tuh_eeg/)
 
 2. **Update dataset paths** in `get_dataset.py`:
@@ -64,7 +64,7 @@ CGM-EEG/
 
 3. **Run preprocessing** for your dataset:
 ```bash
-   python preprocessing/chbmit/preprocess.py   # for CHBMIT
+   python preprocessing/chbmit/preprocess.py   # for CHB-MIT
    python preprocessing/tuev/preprocess.py     # for TUEV
 ```
 
