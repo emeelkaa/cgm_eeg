@@ -12,19 +12,23 @@ up to 6.6% higher balanced accuracy and 7.1% lower inference latency than recent
 ## 📂 Repository Structure
 ```
 CGM-EEG/
-├── dataset.py              # Dataset loading and preprocessing utilities
-├── train.py                # Main training script
-├── requirements.txt        # Python dependencies
+├── assets/                 # Miscellaneous files
+│   ├── pipeline.png         # Architecture diagram
 ├── models/                 # Model architectures
-│   ├── __init__.py
-│   ├── cgm_eeg.py         # Main CGM-EEG model
-│   ├── eeg_conformer.py   # Song, Yonghao, et al. (2022)
-│   └── biot.py            # Yang, Chaoqi, et al. (2023)
-│   └── sparcnet.py        # Jing, Jin, et al. (2023)
-│   └── tsception.py       # Ding, Yi, et al. (2022)
+│   ├── cgm_eeg.py            # Main CGM-EEG model
+│   ├── eeg_conformer.py      # Song, Yonghao, et al. (2022)
+│   ├── biot.py               # Yang, Chaoqi, et al. (2023)
+│   ├── sparcnet.py           # Jing, Jin, et al. (2023)
+│   ├── tsception.py          # Ding, Yi, et al. (2022)
 ├── preprocessing/          # Data preprocessing scripts
-│   ├── will commit later
-├── pipeline.png            # Architecture diagram
+│   ├── chbmit/               # CHBMIT preprocessing
+│   ├── tuev/                 # TUEV preprocessing
+├── get_dataset.py          # Dataset loading
+├── main.py                 # Main training script
+├── engine.py               # Training engine
+├── optim.py                # Optimizer 
+├── utils.py                # Utilities (e.g., metric logging)
+├── requirements.txt        # Python dependencies
 ├── README.md               # This file
 ```
 ### Installation
