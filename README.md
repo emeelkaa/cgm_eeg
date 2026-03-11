@@ -15,10 +15,10 @@ CGM-EEG/
 │   ├── pipeline.png         # Architecture diagram
 ├── models/                 # Model architectures
 │   ├── cgm_eeg.py            # Main CGM-EEG model
-│   ├── eeg_conformer.py      # Song, Yonghao, et al. (2022)
-│   ├── biot.py               # Yang, Chaoqi, et al. (2023)
-│   ├── sparcnet.py           # Jing, Jin, et al. (2023)
 │   ├── tsception.py          # Ding, Yi, et al. (2022)
+│   ├── eeg_conformer.py      # Song, Yonghao, et al. (2022)
+│   ├── sparcnet.py           # Jing, Jin, et al. (2023)
+│   ├── biot.py               # Yang, Chaoqi, et al. (2023)
 ├── preprocessing/          # Data preprocessing scripts
 │   ├── chbmit/               # CHBMIT preprocessing
 │   ├── tuev/                 # TUEV preprocessing
