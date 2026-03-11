@@ -1,172 +1,118 @@
-from collections import OrderedDict
+# Development of Expert-Level Classification of Seizures and Rhythmic and 
+# Periodic Patterns During EEG Interpretation
+# Refer to BIOT repository:
+# https://github.com/ycq091044/BIOT
+
 import math
 import numpy as np
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+class DenseLayer(nn.Module):
+    def __init__(self, in_channels, expansion, bn_size, drop_p, conv_bias, batch_norm):
+        super().__init__()
+        self.batch_norm = batch_norm
+        if self.batch_norm:
+            self.norm1 = nn.BatchNorm1d(in_channels)
+            self.norm2 = nn.BatchNorm1d(bn_size * expansion)
+        
+        self.net1 = nn.Sequential(
+            nn.ELU(),
+            nn.Conv1d(in_channels, (bn_size * expansion), 1, 1, bias=conv_bias)
+        )
+        self.net2 = nn.Sequential(
+            nn.ELU(),
+            nn.Conv1d((bn_size * expansion), expansion, 3, 1, 1, bias=conv_bias)
+        )
+        self.dropout = nn.Dropout(drop_p)
+    
+    def forward(self, x):
+        if self.batch_norm:
+            x_in = self.norm1(x)
+        else:
+            x_in = x 
 
-class DenseLayer(nn.Sequential):
-    def __init__(
-        self,
-        input_channels: int,
-        growth_rate: int,
-        bn_size: int,
-        drop_p: float = 0.5,
-        conv_bias: bool = True,
-        batch_norm: bool = True,
-    ):
-        super(DenseLayer, self).__init__()
-        if batch_norm:
-            self.add_module("norm1", nn.BatchNorm1d(input_channels)),
-        self.add_module("elu1", nn.ELU()),
-        self.add_module(
-            "conv1",
-            nn.Conv1d(
-                input_channels,
-                bn_size * growth_rate,
-                kernel_size=1,
-                stride=1,
-                bias=conv_bias,
-            ),
-        ),
-        if batch_norm:
-            self.add_module("norm2", nn.BatchNorm1d(bn_size * growth_rate)),
-        self.add_module("elu2", nn.ELU()),
-        self.add_module(
-            "conv2",
-            nn.Conv1d(
-                bn_size * growth_rate,
-                growth_rate,
-                kernel_size=3,
-                stride=1,
-                padding=1,
-                bias=conv_bias,
-            ),
-        ),
-        self.drop_p = drop_p
+        out = self.net1(x_in)
+        if self.batch_norm:
+            out = self.norm2(out)
+        
+        out = self.net2(out)
+        out = self.dropout(out)
+        return torch.cat([x, out], 1)
+    
+class DenseBlock(nn.Module):
+    def __init__(self, n_layers, in_channels, expansion, bn_size, drop_p, conv_bias, batch_norm):
+        super().__init__()
+        self.layers = nn.ModuleList([
+            DenseLayer(in_channels + idx_layer * expansion, expansion, bn_size, drop_p, conv_bias, batch_norm) 
+            for idx_layer in range(n_layers)
+        ])
 
     def forward(self, x):
-        new_features = super(DenseLayer, self).forward(x)
-        new_features = F.dropout(new_features, p=self.drop_p, training=self.training)
-        return torch.cat([x, new_features], 1)
+        for layer in self.layers:
+            x = layer(x)
+        return x
 
-
-class DenseBlock(nn.Sequential):
-    def __init__(
-        self,
-        num_layers,
-        input_channels,
-        growth_rate,
-        bn_size,
-        drop_rate=0.5,
-        conv_bias=True,
-        batch_norm=True,
-    ):
-        super(DenseBlock, self).__init__()
-        for idx_layer in range(num_layers):
-            layer = DenseLayer(
-                input_channels + idx_layer * growth_rate,
-                growth_rate,
-                bn_size,
-                drop_rate,
-                conv_bias,
-                batch_norm,
-            )
-            self.add_module("denselayer%d" % (idx_layer + 1), layer)
-
-
-class TransitionLayer(nn.Sequential):
-    def __init__(
-        self, input_channels, output_channels, conv_bias=True, batch_norm=True
-    ):
-        super(TransitionLayer, self).__init__()
-        if batch_norm:
-            self.add_module("norm", nn.BatchNorm1d(input_channels))
-        self.add_module("elu", nn.ELU())
-        self.add_module(
-            "conv",
-            nn.Conv1d(
-                input_channels,
-                output_channels,
-                kernel_size=1,
-                stride=1,
-                bias=conv_bias,
-            ),
+class TransitionLayer(nn.Module):
+    def __init__(self, in_channels, out_channels, conv_bias, batch_norm):
+        super().__init__()
+        self.batch_norm = batch_norm
+        if self.batch_norm:
+            self.norm = nn.BatchNorm1d(in_channels)
+        self.net = nn.Sequential(
+            nn.ELU(),
+            nn.Conv1d(in_channels, out_channels, 1, 1, bias=conv_bias),
+            nn.AvgPool1d(kernel_size=2, stride=2)
         )
-        self.add_module("pool", nn.AvgPool1d(kernel_size=2, stride=2))
 
+    def forward(self, x):
+        if self.batch_norm:
+            x = self.norm(x)
+        out = self.net(x)
+        return out
 
 class SPaRCNet(nn.Module):
-    def __init__(
-        self,
-        in_channels: int = 16,
-        sample_length: int = 2000,
-        num_classes: int = 1,
-        block_layers=4,
-        growth_rate=16,
-        bn_size=16,
-        drop_rate=0.5,
-        conv_bias=True,
-        batch_norm=True,
-        **kwargs,
-    ):
-        super(SPaRCNet, self).__init__()
-
-        # add initial convolutional layer
-        out_channels = 2 ** (math.floor(np.log2(in_channels)) + 1)
-        first_conv = OrderedDict(
-            [
-                (
-                    "conv0",
-                    nn.Conv1d(
-                        in_channels,
-                        out_channels,
-                        kernel_size=7,
-                        stride=2,
-                        padding=3,
-                        bias=conv_bias,
-                    ),
-                )
-            ]
-        )
-        first_conv["norm0"] = nn.BatchNorm1d(out_channels)
-        first_conv["elu0"] = nn.ELU()
-        first_conv["pool0"] = nn.MaxPool1d(kernel_size=3, stride=2, padding=1)
-        self.encoder = nn.Sequential(first_conv)
-
-        n_channels = out_channels
-
-        # add dense blocks
-        for n_layer in np.arange(math.floor(np.log2(sample_length // 4))):
-            block = DenseBlock(
-                num_layers=block_layers,
-                input_channels=n_channels,
-                growth_rate=growth_rate,
-                bn_size=bn_size,
-                drop_rate=drop_rate,
-                conv_bias=conv_bias,
-                batch_norm=batch_norm,
-            )
-            self.encoder.add_module("denseblock%d" % (n_layer + 1), block)
-            # update number of channels after each dense block
-            n_channels = n_channels + block_layers * growth_rate
-
-            trans = TransitionLayer(
-                input_channels=n_channels,
-                output_channels=n_channels // 2,
-                conv_bias=conv_bias,
-                batch_norm=batch_norm,
-            )
-            self.encoder.add_module("transition%d" % (n_layer + 1), trans)
-            # update number of channels after each transition layer
-            n_channels = n_channels // 2
-
-        """ classification layer """
-        self.classifier = nn.Sequential(
+    def __init__(self, n_channels, n_timepoints, n_classes, block_layers=4, expansion=16, bn_size=16, drop_p=0.5, conv_bias=True, batch_norm=True):
+        super().__init__()
+        out_channels = 2 ** (math.floor(np.log2(n_channels)) + 1)
+        
+        self.net0 = nn.Sequential(
+            nn.Conv1d(n_channels, out_channels, 7, 2, 3, bias=conv_bias),
+            nn.BatchNorm1d(out_channels),
             nn.ELU(),
-            nn.Linear(n_channels, num_classes),
+            nn.MaxPool1d(kernel_size=3, stride=2, padding=1)
+        )
+
+        self.dense_blocks = nn.ModuleList()
+        self.transitions = nn.ModuleList()
+        in_channels = out_channels
+
+        for n_layer in np.arange(math.floor(np.log2(n_timepoints // 4))):
+            block = DenseBlock(
+                n_layers=block_layers,
+                in_channels=in_channels,
+                expansion=expansion,
+                bn_size=bn_size,
+                drop_p=drop_p,
+                conv_bias=conv_bias,
+                batch_norm=batch_norm,
+            )
+            self.dense_blocks.append(block)
+            in_channels = in_channels + block_layers * expansion
+
+            transition = TransitionLayer(
+                in_channels=in_channels,
+                out_channels=in_channels // 2,
+                conv_bias=conv_bias,
+                batch_norm=batch_norm,
+            )
+            self.transitions.append(transition)
+            in_channels = in_channels // 2
+        
+        self.cls_head = nn.Sequential(
+            nn.ELU(),
+            nn.Linear(in_channels, n_classes)
         )
 
         # Official init from torch repo.
@@ -180,19 +126,22 @@ class SPaRCNet(nn.Module):
                 m.bias.data.zero_()
 
     def forward(self, x):
-        emb = self.encoder(x).squeeze(-1)
-        out = self.classifier(emb)
+        x = self.net0(x)
+        
+        for block, transition in zip(self.dense_blocks, self.transitions):
+            x = block(x)
+            x = transition(x)
+        
+        out = self.cls_head(x.squeeze(-1))
         return out
-
 
 if __name__ == "__main__":
     import time
-    X = torch.randn(1, 16, 2560).to('cuda')
-    model = SPaRCNet(in_channels=16, sample_length=2560).to('cuda')
-    print("Model parameters:", sum(p.numel() for p in model.parameters()))
-
+    model = SPaRCNet(n_channels=16, n_timepoints=2000, n_classes=1).to('cuda')
+    print(f"Total number of parameters: {sum(p.numel() for p in model.parameters())}")
+    x = torch.randn(1, 16, 2000).to('cuda')
     t0 = time.time()
-    out = model(X)
+    out = model(x)
     t1 = time.time()
     print(f"Inference time: {t1 - t0} seconds")
-    print(out.shape)
+    print(f"Output shape: {out.shape}")
