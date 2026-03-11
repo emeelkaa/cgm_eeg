@@ -49,6 +49,8 @@ CGM-EEG/
 ```bash
    pip install -r requirements.txt
 ```
+> **📌 Note:** For Mamba installation, please refer to the official repository:
+> [https://github.com/state-spaces/mamba](https://github.com/state-spaces/mamba)
 ## 📧 Contact
 
 For questions, issues, or collaboration inquiries, please contact:
