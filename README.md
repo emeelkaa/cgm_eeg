@@ -1,7 +1,6 @@
 # 🧠 CGM-EEG: Cross-Gated Mamba for Spatio-Temporal EEG Representation Learning [ISBI 2026]
 
-Official PyTorch implementation of **CGM-EEG**, a fully Mamba-based dual-branch architecture for efficient and accurate EEG decoding.  
-**CGM-EEG** introduces a *dual-branch design* combining temporal and spatial Mamba encoders, where each branch captures complementary dependencies.  
+Official PyTorch implementation of **CGM-EEG**, a fully Mamba-based dual-branch architecture for efficient and accurate EEG decoding. **CGM-EEG** introduces a *dual-branch design* combining temporal and spatial Mamba encoders, where each branch captures complementary dependencies.  
 The **Cross-Gate Module (CGM)** enables bidirectional interaction between the two branches, refining the learned representations.
 Extensive experiments on three public clinical EEG benchmarks demonstrate that CGM-EEG achieves 
 up to 6.6% higher balanced accuracy and 7.1% lower inference latency than recent transformer-based models.
