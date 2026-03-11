@@ -50,6 +50,30 @@ CGM-EEG/
 ```
 > **📌 Note:** For Mamba installation, please refer to the official repository:
 > [https://github.com/state-spaces/mamba](https://github.com/state-spaces/mamba)
+
+## 🚀 Quick Start
+
+1. **Download the datasets**
+   - **CHBMIT**: [https://physionet.org/content/chbmit/1.0.0/](https://physionet.org/content/chbmit/1.0.0/)
+   - **TUEV**: [https://isip.piconepress.com/projects/tuh_eeg/](https://isip.piconepress.com/projects/tuh_eeg/)
+
+2. **Update dataset paths** in `get_dataset.py`:
+```python
+   root = "/your/path/to/dataset"
+```
+
+3. **Run preprocessing** for your dataset:
+```bash
+   python preprocessing/chbmit/preprocess.py   # for CHBMIT
+   python preprocessing/tuev/preprocess.py     # for TUEV
+```
+
+4. **Train the model**:
+```bash
+   python main.py --dataset chbmit
+   python main.py --dataset tuev
+```
+
 ## 📧 Contact
 
 For questions, issues, or collaboration inquiries, please contact:
