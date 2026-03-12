@@ -22,6 +22,7 @@ CGM-EEG/
 ├── preprocessing/          # Data preprocessing scripts
 │   ├── chbmit/               # CHBMIT preprocessing
 │   ├── tuev/                 # TUEV preprocessing
+│   ├── tusz/                 # Will commit soon
 ├── get_dataset.py          # Dataset loading
 ├── main.py                 # Main training script
 ├── engine.py               # Training engine
