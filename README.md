@@ -56,7 +56,7 @@ CGM-EEG/
 1. **Download the datasets**
    - **CHB-MIT**: [https://physionet.org/content/chbmit/1.0.0/](https://physionet.org/content/chbmit/1.0.0/)
    - **TUEV**: [https://isip.piconepress.com/projects/tuh_eeg/](https://isip.piconepress.com/projects/tuh_eeg/)
-
+   - **TUSZ**: As of 11/03/2026, TUSZ v2.0.5 is available with updated annotations. Script updates are coming soon.
 2. **Update dataset paths** in `get_dataset.py`:
 ```python
    root = "/your/path/to/dataset"
