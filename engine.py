@@ -1,4 +1,4 @@
-# Code adapted from the BIOT repository:
+# Code adapted from the following repository:
 # https://github.com/soupeeli/NeuroBOLT
 
 import sys
