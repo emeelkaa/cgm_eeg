@@ -1,6 +1,6 @@
-# 🧠 CGM-EEG
+# 🧠 CGM-EEG [ISBI 2026]
 
-Official PyTorch implementation of our ISBI 2026 paper: **CGM-EEG**, a Cross-Gated Mamba for Spatio-Temporal EEG Representation Learning.
+Official PyTorch implementation of our ISBI 2026 paper (oral): **CGM-EEG**, a Cross-Gated Mamba for Spatio-Temporal EEG Representation Learning.
 Extensive experiments on three public clinical EEG benchmarks demonstrate that CGM-EEG achieves 
 up to 6.6% higher balanced accuracy and 7.1% lower inference latency than recent transformer-based models.
 
