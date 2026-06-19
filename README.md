@@ -83,3 +83,18 @@ For questions, issues, or collaboration inquiries, please contact:
 - **Author**: Emil Kim
 
 ---
+
+## 📚 Citation
+
+If you find our work helpful, please consider citing the following paper:
+
+```bibtex
+@inproceedings{kim2026cgm,
+  title={CGM-EEG: Cross-Gated Mamba for Spatio-Temporal Eeg Representation Learning},
+  author={Kim, Emil and Gahm, Jin Kyu},
+  booktitle={2026 IEEE 23rd International Symposium on Biomedical Imaging (ISBI)},
+  pages={1--4},
+  year={2026},
+  organization={IEEE}
+}
+```
