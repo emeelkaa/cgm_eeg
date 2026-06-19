@@ -47,12 +47,19 @@ CGM-EEG/
    source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-3. **Install dependencies**
+3. **Install PyTorch** (CUDA 12.1)
 ```bash
-   pip install -r requirements.txt
+pip install torch==2.5.1+cu121 --index-url https://download.pytorch.org/whl/cu121
 ```
-> **📌 Note:** For Mamba installation, please refer to the official repository:
-> [https://github.com/state-spaces/mamba](https://github.com/state-spaces/mamba)
+
+4. **Install Mamba**
+
+Follow the official instructions at [github.com/state-spaces/mamba](https://github.com/state-spaces/mamba). Both `mamba-ssm` and `causal-conv1d` must be built for your CUDA version.
+
+5. **Install remaining dependencies**
+```bash
+pip install -r requirements.txt
+```
 
 ## 🚀 Quick Start
 
