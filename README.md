@@ -1,5 +1,6 @@
 # 🧠 CGM-EEG [ISBI 2026]
-[![Paper](https://img.shields.io/badge/ISBI%202026-Oral-blue)](https://ieeexplore.ieee.org/abstract/document/11515471))
+[![Paper](https://img.shields.io/badge/ISBI%202026-Oral-blue)](https://ieeexplore.ieee.org/abstract/document/11515471)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Official PyTorch implementation of our ISBI 2026 paper (oral): **CGM-EEG**, a Cross-Gated Mamba for Spatio-Temporal EEG Representation Learning.
 Extensive experiments on three public clinical EEG benchmarks demonstrate that CGM-EEG achieves 
