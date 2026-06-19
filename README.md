@@ -2,7 +2,7 @@
 [![Paper](https://img.shields.io/badge/ISBI%202026-Oral-blue)](https://ieeexplore.ieee.org/abstract/document/11515471)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Official PyTorch implementation of our ISBI 2026 paper (oral): **CGM-EEG**, a Cross-Gated Mamba for Spatio-Temporal EEG Representation Learning.
+Official PyTorch implementation of our ISBI 2026 paper: **CGM-EEG**, a Cross-Gated Mamba for Spatio-Temporal EEG Representation Learning.
 Extensive experiments on three public clinical EEG benchmarks demonstrate that CGM-EEG achieves 
 up to 6.6% higher balanced accuracy and 7.1% lower inference latency than recent transformer-based models.
 
@@ -67,6 +67,7 @@ pip install -r requirements.txt
    - **CHB-MIT**: [https://physionet.org/content/chbmit/1.0.0/](https://physionet.org/content/chbmit/1.0.0/)
    - **TUEV**: [https://isip.piconepress.com/projects/tuh_eeg/](https://isip.piconepress.com/projects/tuh_eeg/)
    - **TUSZ**: As of 11/03/2026, TUSZ v2.0.5 is available with updated annotations. Script updates are coming soon.
+
 2. **Update dataset paths** in `get_dataset.py`:
 ```python
    root = "/your/path/to/dataset"
